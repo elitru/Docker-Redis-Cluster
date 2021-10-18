@@ -1,0 +1,47 @@
+Redis Cluster Setup mit Docker
+
+Die Cluster Konfiguration beinhaltet folgende Parameter im Config File (nicht alle sind Pflicht):
+"cluster-enabled <yes|no>" <-- sagt der Instanz, dass sie im Cluster-Mode starten soll
+"cluster-config-file <filename>" <-- hier speichert die Redis Instanz automatisch alle Cluster Konfigurationen; DARF NICHT VOM USER BEARBEITET WERDEN!!!
+"cluster-node-timeout <milliseconds>" <-- gibt an, nach wie vielen Millisekunden der Nicht-Erreichbarkeit eine Instanz als "failed" gilt
+"cluster-slave-validity-factor <factor>" <-- wenn 0, dann glaubt eine Instanz selbst immer gültig zu sein, egal wie oft & wie lange die Instanz vom Master disconnected wurde; 
+wenn nicht 0, dann wird ein maximales Disconnection Timeout von Instanz zu Cluster berechnet. Sollte dieses Überschritten werden, versucht die Instanz kein failover über den Master mehr.
+"cluster-migration-barrier <count>" <-- Mindestabzahl an gültigen Replikas einer Master Instanz, bevor eine Replika "weg-migriert" werden kann
+"cluster-require-full-coverage <yes|no>" <-- wenn auf yes --> wenn ein Prozentanteil an Keyspace nicht von mindestens einer Node abgedeckt wird, werden keine Writes mehr vom Cluster akzeptiert
+"cluster-allow-reads-when-down <yes|no>" <-- legt fest, ob Read-Zugriffe auch dann noch erlaubt sind, wenn der Cluster als "failed" gilt
+
+"requirepass <password>" um ein lokales Passwort für diese Instanz zu verlangen
+"masterauth <password>" um ein Master-Passwort anzulegen
+
+Kleinste benötigte Cluster Config für eine Redis-Node:
+port 7000
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+
+Setup mit Docker
+Als erstes muss eine Redis Config für alle Instanzen (6 Instanzen in meinem Fall) erstellt werden.
+Dafür gibt es folgende Config Dateien (redis-1.conf bis redis-6.conf). Lediglich die Ports ändern sich:
+
+---------- BEGIN ----------
+port 6379  // Ports aufsteigend pro Config von 6379-6384
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+bind 0.0.0.0
+----------- END -----------
+
+Die "bind" Einstellung muss aufgrund von Docker gesetzt werden, damit die Redis Instanz auch von außen (CLI) erreicht werden kann.
+
+Anschließend habe ich alle 6 Redis Instanzen mittels Docker Compose eingerichtet. Dabei ist allerdings zu beachten, dass auch ein eigenes
+Docker-Netzwerk eingerichtet werden, da der Redis-Cluster eine IP erfordert und nicht mit (Docker-)Domänen umgehen kann.
+
+Zusätzlich habe ich alle Redis-Instanzen durch ein Mounten einer Speicher-Datei persitent gemacht.
+
+Zum Schluss wurde der Redis-Cluster noch angestartet; dafür habe ich in der Docker-Compose Config noch einen weiteren Service angelegt.
+
+Der gesamte Cluster kann mittels des Commands 'docker-compuse up' gestartet werden und man kann sich mit 
+folgendem Command auf alle einzelnen Redis-Instanzen verbinden: 'redis-cli -p <port>'.
+Wenn man noch die Flag -c anhängt, wird man von Redis automatisch redirected, sollte ein Key auf einer anderen Instanz laufen.
