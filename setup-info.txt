@@ -1,3 +1,5 @@
+Entschuldigen Sie die verspätete Abgabe, ich war jedoch letzte Woche auf der SBIM und habe erst gestern von dieser Aufgabe erfahren.
+
 Redis Cluster Setup mit Docker
 
 Die Cluster Konfiguration beinhaltet folgende Parameter im Config File (nicht alle sind Pflicht):
@@ -40,8 +42,31 @@ Docker-Netzwerk eingerichtet werden, da der Redis-Cluster eine IP erfordert und 
 
 Zusätzlich habe ich alle Redis-Instanzen durch ein Mounten einer Speicher-Datei persitent gemacht.
 
-Zum Schluss wurde der Redis-Cluster noch angestartet; dafür habe ich in der Docker-Compose Config noch einen weiteren Service angelegt.
+Zum Schluss wurde der Redis-Cluster noch angestartet; dafür habe ich in der Docker-Compose Config noch einen weiteren Service angelegt, der den Start Command des Clusters ausführt.
+Dieser Command sieht wiefolgt aus:
+redis-cli --cluster create 172.16.0.11:6379 172.16.0.12:6380 172.16.0.13:6381 172.16.0.14:6382 172.16.0.15:6383 172.16.0.16:6384 --cluster-replicas 1 --cluster-yes
+ -) durch das keyword 'create' wird ein neuer Cluster angelegt
+ -) hier werden alle Redis Instanzen über ihre Ports angeführt (die IP Adressen kommen vom benötigten Docker Network).
+ -) --cluster-replicas 1 --> d.h. es gibt eine Backup Instanz (Slave) pro Master Node
+ -) --cluster-yes damit im Docker Container automatisch alle Prompts von Redis mit 'yes' bestätigt werden
 
 Der gesamte Cluster kann mittels des Commands 'docker-compuse up' gestartet werden und man kann sich mit 
 folgendem Command auf alle einzelnen Redis-Instanzen verbinden: 'redis-cli -p <port>'.
 Wenn man noch die Flag -c anhängt, wird man von Redis automatisch redirected, sollte ein Key auf einer anderen Instanz laufen.
+
+Einspielen der Daten
+Ich habe die CSV Datei mittel VS Code in folgendes Schema gebracht:
+set 1 "Kabul;AFG;Kabol;1780000"
+set 2 "Qandahar;AFG;Qandahar;237500"
+set 3 "Herat;AFG;Herat;186800"
+set 4 "Mazar-e-Sharif;AFG;Balkh;127800"
+set 5 "Amsterdam;NLD;Noord-Holland;731200"
+set 6 "Rotterdam;NLD;Zuid-Holland;593321"
+set 7 "Haag;NLD;Zuid-Holland;440900"
+set 8 "Utrecht;NLD;Utrecht;234323"
+set 9 "Eindhoven;NLD;Noord-Brabant;201843"
+set 10 "Tilburg;NLD;Noord-Brabant;193238"
+...
+
+Diese konnte ich dann mit folgendem Command in Redis einspielen
+cat city_setup.redisup.csv | redis-cli --pipe

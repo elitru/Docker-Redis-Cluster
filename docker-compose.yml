@@ -1,11 +1,11 @@
-version: '3'
+version: '3.5'
 services:
   redis-cluster:
     image: 'redis:6.0-alpine'
-    command: redis-cli --cluster create 172.16.0.11:6379 172.16.0.12:6380 172.16.0.13:6381 172.16.0.14:6382 172.16.0.15:6383 172.16.0.16:6384 --cluster-replicas 1 --cluster-yes
+    command: redis-cli --cluster create 192.168.0.101:6379 192.168.0.102:6380 192.168.0.103:6381 192.168.0.104:6382 192.168.0.105:6383 192.168.0.106:6384 --cluster-replicas 1 --cluster-yes
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.10
+        ipv4_address: 192.168.0.100
     depends_on:
       - redis-instance-1
       - redis-instance-2
@@ -24,7 +24,7 @@ services:
       - ./redis-config/redis-1.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.11
+        ipv4_address: 192.168.0.101
   # 2. Redis Instance
   redis-instance-2:
     image: 'redis:6.0-alpine'
@@ -36,7 +36,7 @@ services:
       - ./redis-config/redis-2.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.12
+        ipv4_address: 192.168.0.102
   # 3. Redis Instance
   redis-instance-3:
     image: 'redis:6.0-alpine'
@@ -48,7 +48,7 @@ services:
       - ./redis-config/redis-3.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.13
+        ipv4_address: 192.168.0.103
   # 4. Redis Instance
   redis-instance-4:
     image: 'redis:6.0-alpine'
@@ -60,7 +60,7 @@ services:
       - ./redis-config/redis-4.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.14
+        ipv4_address: 192.168.0.104
   # 5. Redis Instance
   redis-instance-5:
     image: 'redis:6.0-alpine'
@@ -72,7 +72,7 @@ services:
       - ./redis-config/redis-5.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.15
+        ipv4_address: 192.168.0.105
   # 6. Redis Instance
   redis-instance-6:
     image: 'redis:6.0-alpine'
@@ -84,7 +84,7 @@ services:
       - ./redis-config/redis-6.conf:/usr/local/etc/redis/redis.conf
     networks:
       redis_cluster_network:
-        ipv4_address: 172.16.0.16
+        ipv4_address: 192.168.0.106
 volumes:
   redis-1-data:
   redis-2-data:
@@ -97,4 +97,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.16.0.0/24
+        - subnet: 192.168.0.0/24
